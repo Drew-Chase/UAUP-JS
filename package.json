@@ -1,6 +1,6 @@
 {
   "name": "uaup-js",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "description": "A Framework to easily create a Auto Updater, for any desktop application, using GitHub",
   "main": "index.js",
   "scripts": {},
@@ -23,7 +23,7 @@
     "url": "https://github.com/DcmanProductions/UAUP-JS/issues"
   },
   "homepage": "https://github.com/DcmanProductions/UAUP-JS#readme",
-  "devDependencies": {
+  "dependencies": {
     "adm-zip": "^0.5.1",
     "request": "^2.88.2"
   }
