@@ -36,7 +36,7 @@ let updateOptions = {
     appExecutableName: "UAUP JS.exe", // The Executable of the Application to be Run after updating [Required]
 
     appDirectory: "/path/to/application", // Where the app will receide, make sure your app has permissions to be there.  [Required]
-    versionFile: "/path/to/version.json", // The Path to the Local Version File. [Required]
+    versionFile: "/path/to/version.json", // The Path to the Local Version File. {Default is "Application directory/settings/version.json"} [Optional]
     tempDirectory: "/tmp", // Where the Update archive will download to. {Default is "Application directory/tmp"} [Optional]
     optionsDirectory: "DO NOT CHANGE", {Default is the versionFile Parent Directory} [DO NOT CHANGE]
 
