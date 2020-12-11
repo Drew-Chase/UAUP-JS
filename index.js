@@ -336,3 +336,6 @@ function LaunchApplication(options) {
 }
 
 //#endregion STAGES
+
+
+module.exports = { Update, CheckForUpdates };
