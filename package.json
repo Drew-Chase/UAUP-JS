@@ -1,0 +1,30 @@
+{
+  "name": "uaup-js",
+  "version": "0.0.1",
+  "description": "A Framework to easily create a Auto Updater, for any desktop application, using GitHub",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DcmanProductions/UAUP-JS.git"
+  },
+  "keywords": [
+    "Auto",
+    "Updater",
+    "Updater",
+    "Installer",
+    "Install",
+    "UAUP-JS",
+    "UAUP"
+  ],
+  "author": "Drew Chase",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DcmanProductions/UAUP-JS/issues"
+  },
+  "homepage": "https://github.com/DcmanProductions/UAUP-JS#readme",
+  "devDependencies": {
+    "adm-zip": "^0.5.1",
+    "request": "^2.88.2"
+  }
+}
