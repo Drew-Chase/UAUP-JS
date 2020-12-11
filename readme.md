@@ -18,13 +18,13 @@ npm i uaup-js --save
 
 # Getting Started
 ### Import
-```
+```javascript
 const uaup = require('uaup-js');
 ```
 
 ### Update Object
 
-```
+```javascript
 let updateOptions = {
     useGithub: true, //Only Github is Currenlty Supported. {Default is true} [Optional]
     gitRepo: "uaup-js", // Your Repo Name [Required]
@@ -47,7 +47,7 @@ let updateOptions = {
 ```
 
 ### Update
-```
+```javascript
 // This will check for updates, download and install (if found), and launch the application.
 // If no update was found the application will launch
 // If the Launch Executable is not found the application will force update
@@ -57,7 +57,7 @@ uaup.Update(updateObject);
 ### Manually Check For Updates
 This is not required, but sometimes you want to check for updates with out updating.
 
-```
+```javascript
 let isUpdateAvalible = uaup.CheckForUpdates(updateOptions);
 if(isUpdateAvalible){
     // Do STUFF HERE
