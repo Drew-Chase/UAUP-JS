@@ -7,7 +7,7 @@ const fs = require('fs');
 
 ////////////////////    GLOBAL VARIABLES    ////////////////////
 //#region GLOBAL VARIABLES
-var app_library = (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share"));
+var app_library = (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share")) + "\\";
 
 var git_api;
 var new_version = "unknown";
@@ -28,8 +28,7 @@ var defaultOptions = {
 
     appDirectory: app_library + this.appName,
     versionFile: this.appDirectory + "/settings/version.json",
-    tempDirectory: this.app_location + "/tmp",
-    optionsDirectory: this.versionFile.toString().split('/')[this.versionFile.toString().split('/').length - 1] + "",
+    tempDirectory: this.appDirectory + "/tmp",
 
     progressBar: null,
     label: null,
@@ -53,6 +52,13 @@ function testOptions(options) {
  * @param {defaultOptions} options 
  */
 function setOptions(options) {
+    // Sets the Default Values
+    options.useGithub = true;
+    options.appDirectory = options.appDirectory == null ? app_library + options.appName : options.appDirectory;
+    options.versionFile = options.versionFile == null ? options.appDirectory + "\\settings\\version.json" : options.versionFile;
+    options.tempDirectory = options.tempDirectory == null ? options.appDirectory + "\\tmp" : options.tempDirectory;
+    options.appExecutableName = options.appExecutableName == null ? options.appName : options.appExecutableName;
+
     // Sets the Elements (if used)
     if (options.label !== null)
         dl_label = options.label;
@@ -60,6 +66,7 @@ function setOptions(options) {
         dl_bar = options.progressBar;
     if (options.useGithub)
         setupGitProtocol(options);
+    return options;
 }
 
 
@@ -78,12 +85,13 @@ function setupGitProtocol(options) {
  * @param {defaultOptions} options 
  */
 function createDirectories(options) {
+    // alert(options.tempDirectory);
     if (!fs.existsSync(options.appDirectory))
-        fs.mkdir(options.appDirectory);
+        fs.mkdirSync(options.appDirectory);
     if (!fs.existsSync(options.tempDirectory))
-        fs.mkdir(options.tempDirectory);
-    if (!fs.existsSync(options.tempDirectory))
-        fs.mkdir(options.optionsDirectory);
+        fs.mkdirSync(options.tempDirectory);
+    if (!fs.existsSync(require('path').dirname(options.versionFile)))
+        fs.mkdirSync(require('path').dirname(options.versionFile));
 }
 
 //#endregion INITIALIZATION
@@ -95,9 +103,9 @@ function createDirectories(options) {
 /**
  * Gets the Direct Download URL From the GitHub API.
  * @param {defaultOptions} options
- * @returns {string} The Direct Download URL
+ * @returns {*} The Direct Download URL
  */
-function GetUpdateURL(options) {
+async function GetUpdateURL(options) {
 
     return fetch(git_api).then(response => response.json()).then(data => { json = data; }).catch(e => {
         try {
@@ -171,7 +179,7 @@ function UpdateCurrentVersion(options) {
  * @param {number} tb - Total Bytes to Download
  */
 function showProgress(rb, tb) {
-    console.log(`${Math.floor((rb * 100) / tb)}% | ${received_bytes} bytes of ${total_bytes} bytes`);
+    console.log(`${Math.floor((rb * 100) / tb)}% | ${rb} bytes of ${tb} bytes`);
     if (dl_bar !== null)
         dl_bar.setAttribute('value', (rb * 100) / tb);
 }
@@ -197,12 +205,13 @@ function updateHeader(value) {
  */
 async function Update(options = defaultOptions) {
     if (testOptions(options)) {
-        setOptions(options);
+        options = setOptions(options);
         createDirectories(options);
         if (options.forceUpdate || CheckForUpdates(options)) {
             updateHeader('Downloading Update');
-            let url = GetUpdateURL(options);
-            Download(url, `${options.tempDirectory}/${options.appName}`);
+            let url = await GetUpdateURL(options);
+            alert(`${options.tempDirectory}\\${options.appName}.zip`);
+            Download(url, `${options.tempDirectory}\\${options.appName}.zip`, options);
             UpdateCurrentVersion(options);
         } else {
             updateHeader("No Update Found");
@@ -228,10 +237,10 @@ async function Update(options = defaultOptions) {
  */
 function CheckForUpdates(options = defaultOptions) {
     if (testOptions(options)) {
-        setOptions(options);
+        options = setOptions(options);
         createDirectories(options);
         updateHeader('Checking for Updates');
-        if (fs.existsSync(config_location)) {
+        if (fs.existsSync(options.versionFile)) {
             GetCurrentVersion(options);
             setTimeout(() => {
                 if (current_version === "unknown") {
@@ -240,7 +249,7 @@ function CheckForUpdates(options = defaultOptions) {
                 }
             }, 1 * 1000);
 
-            return current_version !== await GetUpdateVersion();
+            return current_version !== GetUpdateVersion();
         } else {
             return true;
         }
@@ -252,7 +261,7 @@ function CheckForUpdates(options = defaultOptions) {
  * @param {string} url - Direct Download URL
  * @param {string} path - Temp Download Directory ex: /path/to/file.zip
  */
-function Download(url, path) {
+function Download(url, path, options) {
     let received_bytes = 0;
     let total_bytes = 0;
 
@@ -276,7 +285,7 @@ function Download(url, path) {
     });
 
     req.on('end', () => {
-        setTimeout(() => Install(path), 2000);
+        setTimeout(() => Install(options), 2000);
     });
 }
 /**
@@ -286,7 +295,8 @@ function Download(url, path) {
 function Install(options) {
     updateHeader("Installing...");
     var AdmZip = require('adm-zip');
-    var zip = new AdmZip(`${options.tempDirectory}/${options.appName}`);
+    var zip = new AdmZip(`${options.tempDirectory}/${options.appName}.zip`);
+
     zip.extractAllTo(options.appDirectory, true);
     setTimeout(() => CleanUp(options), 2000);
 }
@@ -299,7 +309,6 @@ function CleanUp(options) {
     updateHeader("Finishing Up...");
     fs.rmdirSync(options.tempDirectory, { recursive: true, maxRetries: 3, retryDelay: 500 })
     setTimeout(() => LaunchApplication(options), 2000);
-
 }
 
 /**
