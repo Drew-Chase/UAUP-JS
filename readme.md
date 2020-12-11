@@ -38,7 +38,6 @@ let updateOptions = {
     appDirectory: "/path/to/application", // Where the app will receide, make sure your app has permissions to be there.{Default is "Application Data/AppName"} [Optional]
     versionFile: "/path/to/version.json", // The Path to the Local Version File. {Default is "Application directory/settings/version.json"} [Optional]
     tempDirectory: "/tmp", // Where the Update archive will download to. {Default is "Application directory/tmp"} [Optional]
-    optionsDirectory: "DO NOT CHANGE", {Default is the versionFile Parent Directory} [DO NOT CHANGE]
 
     progressBar: null, // If Using Electron with a HTML Progressbar, use that element here, otherwise ignore {Default is null} [Optional]
     label: null, // If Using Electron, this will be the area where we put status updates using InnerHTML {Default is null} [Optional]
