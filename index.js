@@ -53,7 +53,8 @@ function testOptions(options) {
  */
 function setOptions(options) {
     // Sets the Default Values
-    options.useGithub = true;
+    options.useGithub = options.useGithub == null ? true : options.appDirectory;
+    options.forceUpdate = options.forceUpdate == null ? false : options.forceUpdate;
     options.appDirectory = options.appDirectory == null ? app_library + options.appName : options.appDirectory;
     options.versionFile = options.versionFile == null ? options.appDirectory + "\\settings\\version.json" : options.versionFile;
     options.tempDirectory = options.tempDirectory == null ? options.appDirectory + "\\tmp" : options.tempDirectory;
@@ -85,7 +86,6 @@ function setupGitProtocol(options) {
  * @param {defaultOptions} options 
  */
 function createDirectories(options) {
-    // alert(options.tempDirectory);
     if (!fs.existsSync(options.appDirectory))
         fs.mkdirSync(options.appDirectory);
     if (!fs.existsSync(options.tempDirectory))
@@ -149,10 +149,9 @@ async function GetUpdateVersion() {
  * @param {defaultOptions} options 
  */
 function GetCurrentVersion(options) {
-    fs.readFile(options.versionFile, (err, data) => {
+    return JSON.parse(fs.readFileSync(options.versionFile, (err, data) => {
         if (err) throw err;
-        current_version = JSON.parse(data)['game_version'];
-    });
+    }))['game_version'];
 }
 
 /**
@@ -207,10 +206,9 @@ async function Update(options = defaultOptions) {
     if (testOptions(options)) {
         options = setOptions(options);
         createDirectories(options);
-        if (options.forceUpdate || CheckForUpdates(options)) {
+        if (options.forceUpdate || await CheckForUpdates(options)) {
             updateHeader('Downloading Update');
             let url = await GetUpdateURL(options);
-            alert(`${options.tempDirectory}\\${options.appName}.zip`);
             Download(url, `${options.tempDirectory}\\${options.appName}.zip`, options);
             UpdateCurrentVersion(options);
         } else {
@@ -233,24 +231,22 @@ async function Update(options = defaultOptions) {
 /**
  * Checks if there are any updates
  * @param {defaultOptions} options 
- * @returns {boolean} true if an update is needed and false if not
+ * @returns {*} true if an update is needed and false if not
  */
-function CheckForUpdates(options = defaultOptions) {
+async function CheckForUpdates(options = defaultOptions) {
     if (testOptions(options)) {
         options = setOptions(options);
         createDirectories(options);
         updateHeader('Checking for Updates');
         if (fs.existsSync(options.versionFile)) {
-            GetCurrentVersion(options);
-            setTimeout(() => {
-                if (current_version === "unknown") {
-                    console.error('Unable to Load Current Version... Trying again');
-                    return CheckForUpdates(options);
-                }
-            }, 1 * 1000);
-
-            return current_version !== GetUpdateVersion();
+            current_version = GetCurrentVersion(options);
+            if (current_version == "unknown") {
+                console.error('Unable to Load Current Version... Trying again');
+                return CheckForUpdates(options);
+            }
+            return current_version !== await GetUpdateVersion();
         } else {
+            alert("Couln't find the Version File")
             return true;
         }
     }
