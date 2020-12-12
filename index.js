@@ -119,7 +119,7 @@ async function GetUpdateURL(options) {
     }).then(() => {
         let zip;
         for (i = 0; i < json['assets'].length; i++) {
-            if (json['assets'][i]['content_type'] === 'application/zip' && json['assets'][i]['name'] === `${options.appName}.zip`) zip = json['assets'][i];
+            if (json['assets'][i]['name'] === `${options.appName}.zip`) zip = json['assets'][i];
         }
         return zip['browser_download_url'];
     });
@@ -139,7 +139,6 @@ async function GetUpdateVersion() {
             return;
         }
     }).then(() => {
-        new_version = json['tag_name'];
         return json['tag_name'];
     });
 }
@@ -238,15 +237,16 @@ async function CheckForUpdates(options = defaultOptions) {
         options = setOptions(options);
         createDirectories(options);
         updateHeader('Checking for Updates');
+        new_version = await GetUpdateVersion()
         if (fs.existsSync(options.versionFile)) {
             current_version = GetCurrentVersion(options);
             if (current_version == "unknown") {
                 console.error('Unable to Load Current Version... Trying again');
-                return CheckForUpdates(options);
+                return true;
             }
-            return current_version !== await GetUpdateVersion();
+            return current_version !== new_version;
         } else {
-            alert("Couln't find the Version File")
+            console.error("Couln't find the Version File")
             return true;
         }
     }

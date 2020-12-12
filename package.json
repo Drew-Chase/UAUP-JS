@@ -1,6 +1,6 @@
 {
   "name": "uaup-js",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "A Framework to easily create a Auto Updater, for any desktop application, using GitHub",
   "main": "index.js",
   "scripts": {},

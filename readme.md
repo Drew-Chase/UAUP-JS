@@ -26,22 +26,22 @@ const uaup = require('uaup-js');
 
 ```javascript
 let updateOptions = {
-    useGithub: true, //Only Github is Currenlty Supported. {Default is true} [Optional]
-    gitRepo: "uaup-js", // Your Repo Name [Required]
-    gitUsername: "billy123",  // Your GitHub Username [Required]
-    isGitRepoPrivate: false,  // If the Repo is Private or Public  (Currently not Supported) {Default is false} [Optional]
-    gitRepoToken: "abc123",  // The Token from GitHub to Access a Private Repo.  Only for Private Repos {Default is null} [Optional]
+    useGithub: true, // {Default is true} [Optional] Only Github is Currenlty Supported.
+    gitRepo: "uaup-js", // [Required] Your Repo Name
+    gitUsername: "billy123",  // [Required] Your GitHub Username.
+    isGitRepoPrivate: false,  // {Default is false} [Optional] If the Repo is Private or Public  (Currently not Supported).
+    gitRepoToken: "abc123",  // {Default is null} [Optional] The Token from GitHub to Access a Private Repo.  Only for Private Repos.
 
-    appName: "uaup-js", // The Name of the app [Required]
-    appExecutableName: "UAUP JS.exe", // The Executable of the Application to be Run after updating [Required]
+    appName: "uaup-js", //[Required] The Name of the app archive and the app folder.
+    appExecutableName: "UAUP JS.exe", //[Required] The Executable of the Application to be Run after updating.
 
-    appDirectory: "/path/to/application", // Where the app will receide, make sure your app has permissions to be there.{Default is "Application Data/AppName"} [Optional]
-    versionFile: "/path/to/version.json", // The Path to the Local Version File. {Default is "Application directory/settings/version.json"} [Optional]
-    tempDirectory: "/tmp", // Where the Update archive will download to. {Default is "Application directory/tmp"} [Optional]
+    appDirectory: "/path/to/application", //{Default is "Application Data/AppName"} [Optional]  Where the app will receide, make sure your app has permissions to be there.
+    versionFile: "/path/to/version.json", // {Default is "Application directory/settings/version.json"} [Optional] The Path to the Local Version File.
+    tempDirectory: "/tmp", // {Default is "Application directory/tmp"} [Optional] Where the Update archive will download to.
 
-    progressBar: null, // If Using Electron with a HTML Progressbar, use that element here, otherwise ignore {Default is null} [Optional]
-    label: null, // If Using Electron, this will be the area where we put status updates using InnerHTML {Default is null} [Optional]
-    forceUpdate: false // If the Application should be forced updated.  This will change to true if any errors ocurr while launching. {Default is false} [Optional]
+    progressBar: null, // {Default is null} [Optional] If Using Electron with a HTML Progressbar, use that element here, otherwise ignore
+    label: null, // {Default is null} [Optional] If Using Electron, this will be the area where we put status updates using InnerHTML
+    forceUpdate: false // {Default is false} [Optional] If the Application should be forced updated.  This will change to true if any errors ocurr while launching.
 };
 ```
 
