@@ -22,10 +22,9 @@ npm i uaup-js --save
 const uaup = require('uaup-js');
 ```
 
-### Update Object
+### Stages
 
 ```javascript
-
 const defaultStages = {
     Checking: "Checking For Updates!", // When Checking For Updates.
     Found: "Update Found!",  // If an Update is Found.
@@ -35,6 +34,13 @@ const defaultStages = {
     Cleaning: "Finalizing...", // When Removing Temp Directories and Files (ex: update archive and tmp directory).
     Launch: "Launching..." // When Launching the Application.
 };
+
+```
+
+
+### Update Object
+
+```javascript
 
 
 const updateOptions = {
