@@ -25,7 +25,19 @@ const uaup = require('uaup-js');
 ### Update Object
 
 ```javascript
-let updateOptions = {
+
+const defaultStages = {
+    Checking: "Checking For Updates!", // When Checking For Updates.
+    Found: "Update Found!",  // If an Update is Found.
+    NotFound: "No Update Found.", // If an Update is Not Found.
+    Downloading: "Downloading...", // When Downloading Update.
+    Unzipping: "Installing...", // When Unzipping the Archive into the Application Directory.
+    Cleaning: "Finalizing...", // When Removing Temp Directories and Files (ex: update archive and tmp directory).
+    Launch: "Launching..." // When Launching the Application.
+};
+
+
+const updateOptions = {
     useGithub: true, // {Default is true} [Optional] Only Github is Currenlty Supported.
     gitRepo: "uaup-js", // [Required] Your Repo Name
     gitUsername: "billy123",  // [Required] Your GitHub Username.
@@ -42,6 +54,7 @@ let updateOptions = {
     progressBar: null, // {Default is null} [Optional] If Using Electron with a HTML Progressbar, use that element here, otherwise ignore
     label: null, // {Default is null} [Optional] If Using Electron, this will be the area where we put status updates using InnerHTML
     forceUpdate: false // {Default is false} [Optional] If the Application should be forced updated.  This will change to true if any errors ocurr while launching.
+    stageTitles: defaultStages // {Default is defaultStages} [Optional] Sets the Status Title for Each Stage
 };
 ```
 
@@ -50,7 +63,7 @@ let updateOptions = {
 // This will check for updates, download and install (if found), and launch the application.
 // If no update was found the application will launch
 // If the Launch Executable is not found the application will force update
-uaup.Update(updateObject);
+uaup.Update(updateOptions);
 ```
 
 ### Manually Check For Updates

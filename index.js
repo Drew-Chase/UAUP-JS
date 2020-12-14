@@ -16,7 +16,17 @@ var current_version = "unknown";
 var dl_bar;
 var dl_label;
 
-var defaultOptions = {
+const defaultStages = {
+    Checking: "Checking For Updates!",
+    Found: "Update Found!",
+    NotFound: "No Update Found.",
+    Downloading: "Downloading...",
+    Unzipping: "Installing...",
+    Cleaning: "Finalizing...",
+    Launch: "Launching..."
+};
+
+const defaultOptions = {
     useGithub: true,
     gitRepo: "unknown",
     gitUsername: "unknown",
@@ -32,8 +42,13 @@ var defaultOptions = {
 
     progressBar: null,
     label: null,
-    forceUpdate: false
+    forceUpdate: false,
+    stageTitles: defaultStages
 };
+
+
+
+
 //#endregion GLOBAL VARIABLES
 
 
@@ -59,6 +74,8 @@ function setOptions(options) {
     options.versionFile = options.versionFile == null ? options.appDirectory + "\\settings\\version.json" : options.versionFile;
     options.tempDirectory = options.tempDirectory == null ? options.appDirectory + "\\tmp" : options.tempDirectory;
     options.appExecutableName = options.appExecutableName == null ? options.appName : options.appExecutableName;
+    options.stageTitles = options.stageTitles == null ? defaultOptions.stageTitles : options.stageTitles;
+
 
     // Sets the Elements (if used)
     if (options.label !== null)
@@ -206,13 +223,15 @@ async function Update(options = defaultOptions) {
         options = setOptions(options);
         createDirectories(options);
         if (options.forceUpdate || await CheckForUpdates(options)) {
-            updateHeader('Downloading Update');
+            updateHeader(options.stageTitles.Found);
+            await sleep(1000);
             let url = await GetUpdateURL(options);
             Download(url, `${options.tempDirectory}\\${options.appName}.zip`, options);
             UpdateCurrentVersion(options);
         } else {
-            updateHeader("No Update Found");
-            setTimeout(() => LaunchApplication(options), 1500);
+            updateHeader(options.stageTitles.NotFound);
+            await sleep(1000);
+            LaunchApplication(options)
         }
     } else {
         try {
@@ -236,8 +255,9 @@ async function CheckForUpdates(options = defaultOptions) {
     if (testOptions(options)) {
         options = setOptions(options);
         createDirectories(options);
-        updateHeader('Checking for Updates');
-        new_version = await GetUpdateVersion()
+        updateHeader(options.stageTitles.Checking);
+        await sleep(1000);
+        new_version = await GetUpdateVersion();
         if (fs.existsSync(options.versionFile)) {
             current_version = GetCurrentVersion(options);
             if (current_version == "unknown") {
@@ -258,6 +278,7 @@ async function CheckForUpdates(options = defaultOptions) {
  * @param {string} path - Temp Download Directory ex: /path/to/file.zip
  */
 function Download(url, path, options) {
+    updateHeader(options.stageTitles.Downloading)
     let received_bytes = 0;
     let total_bytes = 0;
 
@@ -281,7 +302,7 @@ function Download(url, path, options) {
     });
 
     req.on('end', () => {
-        setTimeout(() => Install(options), 2000);
+        Install(options)
     });
 }
 /**
@@ -289,7 +310,7 @@ function Download(url, path, options) {
  * @param {defaultOptions} options
  */
 function Install(options) {
-    updateHeader("Installing...");
+    updateHeader(options.stageTitles.Unzipping);
     var AdmZip = require('adm-zip');
     var zip = new AdmZip(`${options.tempDirectory}/${options.appName}.zip`);
 
@@ -302,7 +323,7 @@ function Install(options) {
  * @param {defaultOptions} options 
  */
 function CleanUp(options) {
-    updateHeader("Finishing Up...");
+    updateHeader(options.stageTitles.Cleaning);
     fs.rmdirSync(options.tempDirectory, { recursive: true, maxRetries: 3, retryDelay: 500 })
     setTimeout(() => LaunchApplication(options), 2000);
 }
@@ -314,7 +335,7 @@ function CleanUp(options) {
 function LaunchApplication(options) {
     let executablePath = `${options.appDirectory}/${options.appExecutableName}`;
     if (fs.existsSync(executablePath)) {
-        updateHeader("Launching...");
+        updateHeader(options.stageTitles.Launch);
         let child = require('child_process').execFile;
         child(executablePath, function (err, data) {
             if (err) {
@@ -342,5 +363,9 @@ function LaunchApplication(options) {
 
 //#endregion STAGES
 
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
 module.exports = { Update, CheckForUpdates };
