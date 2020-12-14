@@ -53,8 +53,8 @@ const updateOptions = {
 
     progressBar: null, // {Default is null} [Optional] If Using Electron with a HTML Progressbar, use that element here, otherwise ignore
     label: null, // {Default is null} [Optional] If Using Electron, this will be the area where we put status updates using InnerHTML
-    forceUpdate: false // {Default is false} [Optional] If the Application should be forced updated.  This will change to true if any errors ocurr while launching.
-    stageTitles: defaultStages // {Default is defaultStages} [Optional] Sets the Status Title for Each Stage
+    forceUpdate: false, // {Default is false} [Optional] If the Application should be forced updated.  This will change to true if any errors ocurr while launching.
+    stageTitles: defaultStages, // {Default is defaultStages} [Optional] Sets the Status Title for Each Stage
 };
 ```
 
