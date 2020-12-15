@@ -102,13 +102,14 @@ function setupGitProtocol(options) {
  * Creates the Required Directories for the Application to Run
  * @param {defaultOptions} options 
  */
+
 function createDirectories(options) {
     if (!fs.existsSync(options.appDirectory))
-        fs.mkdirSync(options.appDirectory);
+        fs.mkdirSync(options.appDirectory, { recursive: true });
     if (!fs.existsSync(options.tempDirectory))
-        fs.mkdirSync(options.tempDirectory);
+        fs.mkdirSync(options.tempDirectory, { recursive: true });
     if (!fs.existsSync(require('path').dirname(options.versionFile)))
-        fs.mkdirSync(require('path').dirname(options.versionFile));
+        fs.mkdirSync(require('path').dirname(options.versionFile), { recursive: true });
 }
 
 //#endregion INITIALIZATION
@@ -333,11 +334,11 @@ function CleanUp(options) {
  * @param {defaultOptions} options 
  */
 function LaunchApplication(options) {
-    let executablePath = `${options.appDirectory}/${options.appExecutableName}`;
+    let executablePath = require('path').join(options.appDirectory, options.appExecutableName);
     if (fs.existsSync(executablePath)) {
         updateHeader(options.stageTitles.Launch);
-        let child = require('child_process').execFile;
-        child(executablePath, function (err, data) {
+        let child = require('child_process').exec;
+        child(`"${executablePath}"`, function (err, data) {
             if (err) {
                 console.error(err);
                 return;
@@ -354,18 +355,24 @@ function LaunchApplication(options) {
         try {
             // Electron
             window.close();
-        } catch {
+        } catch (e) {
             // NodeJS
             process.exit(0);
         }
-    }, 2000);
+    }, 1000);
 }
 
 //#endregion STAGES
 
-
+////////////////////    UTILITIES    ////////////////////
+//#region UTILITIES
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
+}
 
-module.exports = { Update, CheckForUpdates };
+function GetAppLibrary() {
+    return app_library;
+}
+//#endregion
+
+module.exports = { Update, CheckForUpdates, GetAppLibrary };
