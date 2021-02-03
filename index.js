@@ -13,8 +13,8 @@ var git_api;
 var new_version = "unknown";
 var current_version = "unknown";
 
-var dl_bar;
-var dl_label;
+var dl_bar = null;
+var dl_label = null;
 
 const defaultStages = {
     Checking: "Checking For Updates!",
@@ -196,8 +196,10 @@ function UpdateCurrentVersion(options) {
  */
 function showProgress(rb, tb) {
     console.log(`${Math.floor((rb * 100) / tb)}% | ${rb} bytes of ${tb} bytes`);
-    if (dl_bar !== null)
-        dl_bar.setAttribute('value', (rb * 100) / tb);
+    try {
+        if (dl_bar !== null)
+            dl_bar.setAttribute('value', (rb * 100) / tb);
+    } catch { }
 }
 
 /**
@@ -206,8 +208,10 @@ function showProgress(rb, tb) {
  */
 function updateHeader(value) {
     console.log(value);
-    if (dl_label !== null)
-        dl_label.innerHTML = value;
+    try {
+        if (dl_label !== null)
+            dl_label.innerHTML = value;
+    } catch { }
 }
 
 //#endregion LOGGING
@@ -267,7 +271,7 @@ async function CheckForUpdates(options = defaultOptions) {
             }
             return current_version !== new_version;
         } else {
-            console.error("Couln't find the Version File")
+            console.warn("Couln't find the Version File, this usually means that there was no previous update.")
             return true;
         }
     }

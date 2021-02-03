@@ -1,6 +1,10 @@
 # Changelog
 All noteable changes for the project will be documented here
 
+## [0.0.21] - 01-07-2020
+
+- Fixed Issue where if no progress bar or label was set, it would through an error.
+
 ## [0.0.20] - 12-15-2020
 
 No Major Changes!
