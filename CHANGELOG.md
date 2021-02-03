@@ -1,6 +1,10 @@
 # Changelog
 All noteable changes for the project will be documented here
 
+## [0.0.22] - 01-07-2020
+
+- Added more clarity to the error when no version file was found.
+
 ## [0.0.21] - 01-07-2020
 
 - Fixed Issue where if no progress bar or label was set, it would through an error.
