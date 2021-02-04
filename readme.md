@@ -5,6 +5,7 @@
 - [Creating an Update](#creating-an-update)
 - [How It Works](#how-it-works)
 - [Video](#video-tutorial)
+- [Example Project](https://github.com/DcmanProductions/UAUP-Example)
 
 # Whats UAUP-JS
 UAUP or Universal Auto Update Platform, is a framework for NodeJS that allows you to easily create an auto updater for any desktop application using either base NodeJS or Electron. 
