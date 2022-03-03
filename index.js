@@ -1,4 +1,3 @@
-
 ////////////////////    IMPORTING    ////////////////////
 //#region IMPORTING
 const request = require('request');
@@ -13,8 +12,8 @@ var git_api;
 var new_version = "unknown";
 var current_version = "unknown";
 
-var dl_bar = null;
-var dl_label = null;
+var dl_bar;
+var dl_label;
 
 const defaultStages = {
     Checking: "Checking For Updates!",
@@ -102,14 +101,13 @@ function setupGitProtocol(options) {
  * Creates the Required Directories for the Application to Run
  * @param {defaultOptions} options 
  */
-
 function createDirectories(options) {
     if (!fs.existsSync(options.appDirectory))
-        fs.mkdirSync(options.appDirectory, { recursive: true });
+        fs.mkdirSync(options.appDirectory);
     if (!fs.existsSync(options.tempDirectory))
-        fs.mkdirSync(options.tempDirectory, { recursive: true });
+        fs.mkdirSync(options.tempDirectory);
     if (!fs.existsSync(require('path').dirname(options.versionFile)))
-        fs.mkdirSync(require('path').dirname(options.versionFile), { recursive: true });
+        fs.mkdirSync(require('path').dirname(options.versionFile));
 }
 
 //#endregion INITIALIZATION
@@ -196,10 +194,8 @@ function UpdateCurrentVersion(options) {
  */
 function showProgress(rb, tb) {
     console.log(`${Math.floor((rb * 100) / tb)}% | ${rb} bytes of ${tb} bytes`);
-    try {
-        if (dl_bar !== null)
-            dl_bar.setAttribute('value', (rb * 100) / tb);
-    } catch { }
+    if (dl_bar !== null)
+        dl_bar.setAttribute('value', (rb * 100) / tb);
 }
 
 /**
@@ -208,10 +204,8 @@ function showProgress(rb, tb) {
  */
 function updateHeader(value) {
     console.log(value);
-    try {
-        if (dl_label !== null)
-            dl_label.innerHTML = value;
-    } catch { }
+    if (dl_label !== null)
+        dl_label.innerHTML = value;
 }
 
 //#endregion LOGGING
@@ -227,8 +221,13 @@ async function Update(options = defaultOptions) {
     if (testOptions(options)) {
         options = setOptions(options);
         createDirectories(options);
-        if (options.forceUpdate || await CheckForUpdates(options)) {
-            updateHeader(options.stageTitles.Found);
+        // Fixed the Title Switch
+        // Made stage title Found if only there is any new update
+        let any_new_update = await CheckForUpdates(options);
+        if (options.forceUpdate || any_new_update) {
+            if (any_new_update) {
+                updateHeader(options.stageTitles.Found);
+            }
             await sleep(1000);
             let url = await GetUpdateURL(options);
             Download(url, `${options.tempDirectory}\\${options.appName}.zip`, options);
@@ -269,9 +268,17 @@ async function CheckForUpdates(options = defaultOptions) {
                 console.error('Unable to Load Current Version... Trying again');
                 return true;
             }
+            // if new_version == undefined or new_version == null;
+            // return false
+            // otherwise true
+            if (!new_version) {
+                updateHeader(options.stageTitles.NotFound);
+                return false
+            };
+
             return current_version !== new_version;
         } else {
-            console.warn("Couln't find the Version File, this usually means that there was no previous update.")
+            console.error("Couln't find the Version File")
             return true;
         }
     }
@@ -283,16 +290,27 @@ async function CheckForUpdates(options = defaultOptions) {
  * @param {string} path - Temp Download Directory ex: /path/to/file.zip
  */
 function Download(url, path, options) {
+    // if url is empty
+    // exit function
+    if (!url) {
+        // Set stage title to "No Update Found!"
+        // but noticed that since there's a force update implementation
+        // it displays "No Update Found!" promptly before displaying "Update Found!"
+        // to resolve that, if the stage title has not been updated to "Update Found!"
+        // it should go ahead to update the stage title to "No Update Found!"
+        if (!options.stageTitles.Found) {
+            updateHeader(options.stageTitles.NotFound);
+        }
+        return
+    };
     updateHeader(options.stageTitles.Downloading)
     let received_bytes = 0;
     let total_bytes = 0;
 
-    var req = request(
-        {
-            method: 'GET',
-            uri: url
-        }
-    );
+    var req = request({
+        method: 'GET',
+        uri: url
+    });
 
     var out = fs.createWriteStream(path);
     req.pipe(out);
@@ -338,11 +356,15 @@ function CleanUp(options) {
  * @param {defaultOptions} options 
  */
 function LaunchApplication(options) {
+    // Used the path module to get path, as the current one was buggy on windows
+    // I hope it works well for other OS
+    // let executablePath = `${options.appDirectory}/${options.appExecutableName}`;
     let executablePath = require('path').join(options.appDirectory, options.appExecutableName);
+
     if (fs.existsSync(executablePath)) {
         updateHeader(options.stageTitles.Launch);
         let child = require('child_process').exec;
-        child(`"${executablePath}"`, function (err, data) {
+        child(executablePath, function(err, data) {
             if (err) {
                 console.error(err);
                 return;
@@ -368,15 +390,9 @@ function LaunchApplication(options) {
 
 //#endregion STAGES
 
-////////////////////    UTILITIES    ////////////////////
-//#region UTILITIES
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function GetAppLibrary() {
-    return app_library;
-}
-//#endregion
-
-module.exports = { Update, CheckForUpdates, GetAppLibrary };
+module.exports = { Update, CheckForUpdates };
