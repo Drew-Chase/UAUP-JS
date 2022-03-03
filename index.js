@@ -290,8 +290,14 @@ async function CheckForUpdates(options = defaultOptions) {
  * @param {string} path - Temp Download Directory ex: /path/to/file.zip
  */
 function Download(url, path, options) {
-    // if url
+    // if url is empty
+    // exit function
     if (!url) {
+        // Set stage title to "No Update Found!"
+        // but noticed that since there's a force update implementation
+        // it displays "No Update Found!" promptly before displaying "Update Found!"
+        // to resolve that, if the stage title has not been updated to "Update Found!"
+        // it should go ahead to update the stage title to "No Update Found!"
         if (!options.stageTitles.Found) {
             updateHeader(options.stageTitles.NotFound);
         }
