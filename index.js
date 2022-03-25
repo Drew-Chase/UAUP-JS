@@ -10,6 +10,7 @@ const fs = require('fs');
 var app_library = (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share")) + "\\";
 
 var git_api;
+var git_headers;
 var new_version = "unknown";
 var current_version = "unknown";
 
@@ -95,6 +96,10 @@ function setOptions(options) {
 function setupGitProtocol(options) {
     options.gitRepo = options.gitRepo.toString().replace('/ /gi', '-');
     git_api = `https://api.github.com/repos/${options.gitUsername}/${options.gitRepo}/releases/latest`;
+    git_headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36' };
+    if(options.isGitRepoPrivate) {
+        git_headers['Authorization'] = `token  ${options.gitRepoToken}`
+    }
 }
 
 
@@ -125,7 +130,7 @@ function createDirectories(options) {
  */
 async function GetUpdateURL(options) {
 
-    return fetch(git_api).then(response => response.json()).then(data => { json = data; }).catch(e => {
+    return fetch(git_api, {headers: git_headers}).then(response => response.json()).then(data => { json = data; }).catch(e => {
         try {
             // Electron
             alert(`Something went wrong: ${e}`);
@@ -139,7 +144,7 @@ async function GetUpdateURL(options) {
         for (i = 0; i < json['assets'].length; i++) {
             if (json['assets'][i]['name'] === `${options.appName}.zip`) zip = json['assets'][i];
         }
-        return zip['browser_download_url'];
+        return zip['url'];
     });
 }
 
@@ -147,7 +152,8 @@ async function GetUpdateURL(options) {
  * Gets the current relase version from GitHub
  */
 async function GetUpdateVersion() {
-    return fetch(git_api).then(response => response.json()).then(data => { json = data; }).catch(e => {
+
+    return fetch(git_api, {headers: git_headers}).then(response => response.json()).then(data => { json = data; }).catch(e => {
         try {
             // Electron
             alert(`Something went wrong: ${e}`);
@@ -286,9 +292,11 @@ function Download(url, path, options) {
     updateHeader(options.stageTitles.Downloading)
     let received_bytes = 0;
     let total_bytes = 0;
+    let headers = {...git_headers, 'Accept': 'application/octet-stream'};
 
     var req = request(
         {
+            headers,
             method: 'GET',
             uri: url
         }
