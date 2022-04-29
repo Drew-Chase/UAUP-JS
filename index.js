@@ -7,9 +7,11 @@ const fs = require('fs');
 
 ////////////////////    GLOBAL VARIABLES    ////////////////////
 //#region GLOBAL VARIABLES
-var app_library = (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share")) + "\\";
+var slash = (process.platform == 'win32') ? "\\" : "/";
+var app_library = (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + `${slash}.local${slash}share`)) + slash;
 
 var git_api;
+var git_headers;
 var new_version = "unknown";
 var current_version = "unknown";
 
@@ -37,8 +39,8 @@ const defaultOptions = {
     appExecutableName: this.appName + "",
 
     appDirectory: app_library + this.appName,
-    versionFile: this.appDirectory + "/settings/version.json",
-    tempDirectory: this.appDirectory + "/tmp",
+    versionFile: `${this.appDirectory}${slash}settings${slash}version.json`,
+    tempDirectory: `${this.appDirectory}${slash}tmp`,
 
     progressBar: null,
     label: null,
@@ -71,8 +73,8 @@ function setOptions(options) {
     options.useGithub = options.useGithub == null ? true : options.appDirectory;
     options.forceUpdate = options.forceUpdate == null ? false : options.forceUpdate;
     options.appDirectory = options.appDirectory == null ? app_library + options.appName : options.appDirectory;
-    options.versionFile = options.versionFile == null ? options.appDirectory + "\\settings\\version.json" : options.versionFile;
-    options.tempDirectory = options.tempDirectory == null ? options.appDirectory + "\\tmp" : options.tempDirectory;
+    options.versionFile = options.versionFile == null ? options.appDirectory + `${slash}settings${slash}version.json` : options.versionFile;
+    options.tempDirectory = options.tempDirectory == null ? options.appDirectory + `${slash}tmp` : options.tempDirectory;
     options.appExecutableName = options.appExecutableName == null ? options.appName : options.appExecutableName;
     options.stageTitles = options.stageTitles == null ? defaultOptions.stageTitles : options.stageTitles;
 
@@ -95,6 +97,10 @@ function setOptions(options) {
 function setupGitProtocol(options) {
     options.gitRepo = options.gitRepo.toString().replace('/ /gi', '-');
     git_api = `https://api.github.com/repos/${options.gitUsername}/${options.gitRepo}/releases/latest`;
+    git_headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36' };
+    if(options.isGitRepoPrivate) {
+        git_headers['Authorization'] = `token  ${options.gitRepoToken}`
+    }
 }
 
 
@@ -125,7 +131,7 @@ function createDirectories(options) {
  */
 async function GetUpdateURL(options) {
 
-    return fetch(git_api).then(response => response.json()).then(data => { json = data; }).catch(e => {
+    return fetch(git_api, {headers: git_headers}).then(response => response.json()).then(data => { json = data; }).catch(e => {
         try {
             // Electron
             alert(`Something went wrong: ${e}`);
@@ -139,7 +145,7 @@ async function GetUpdateURL(options) {
         for (i = 0; i < json['assets'].length; i++) {
             if (json['assets'][i]['name'] === `${options.appName}.zip`) zip = json['assets'][i];
         }
-        return zip['browser_download_url'];
+        return zip['url'];
     });
 }
 
@@ -147,7 +153,8 @@ async function GetUpdateURL(options) {
  * Gets the current relase version from GitHub
  */
 async function GetUpdateVersion() {
-    return fetch(git_api).then(response => response.json()).then(data => { json = data; }).catch(e => {
+
+    return fetch(git_api, {headers: git_headers}).then(response => response.json()).then(data => { json = data; }).catch(e => {
         try {
             // Electron
             alert(`Something went wrong: ${e}`);
@@ -231,7 +238,7 @@ async function Update(options = defaultOptions) {
             updateHeader(options.stageTitles.Found);
             await sleep(1000);
             let url = await GetUpdateURL(options);
-            Download(url, `${options.tempDirectory}\\${options.appName}.zip`, options);
+            Download(url, `${options.tempDirectory}${slash}${options.appName}.zip`, options);
             UpdateCurrentVersion(options);
         } else {
             updateHeader(options.stageTitles.NotFound);
@@ -286,9 +293,11 @@ function Download(url, path, options) {
     updateHeader(options.stageTitles.Downloading)
     let received_bytes = 0;
     let total_bytes = 0;
+    let headers = {...git_headers, 'Accept': 'application/octet-stream'};
 
     var req = request(
         {
+            headers,
             method: 'GET',
             uri: url
         }
@@ -317,7 +326,7 @@ function Download(url, path, options) {
 function Install(options) {
     updateHeader(options.stageTitles.Unzipping);
     var AdmZip = require('adm-zip');
-    var zip = new AdmZip(`${options.tempDirectory}/${options.appName}.zip`);
+    var zip = new AdmZip(`${options.tempDirectory}${slash}${options.appName}.zip`);
 
     zip.extractAllTo(options.appDirectory, true);
     setTimeout(() => CleanUp(options), 2000);
@@ -342,7 +351,9 @@ function LaunchApplication(options) {
     if (fs.existsSync(executablePath)) {
         updateHeader(options.stageTitles.Launch);
         let child = require('child_process').exec;
-        child(`"${executablePath}"`, function (err, data) {
+        let command = `"${executablePath}"`;
+        if (process.platform == 'linux') command = `chmod +x ${executablePath}; ${command}` 
+        child(command, function (err, data) {
             if (err) {
                 console.error(err);
                 return;
